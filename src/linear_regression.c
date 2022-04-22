@@ -86,6 +86,7 @@ int main(int argc, char *argv[])
 
 		case 'h':
 		default:
+			printf("--HELP--\n");
 			printf("This program optimizes linear regression using gradient descent.\n");
 			printf("Linear regression can be easily solved using linear algebra, but this is a fun exercise.\n");
 			printf("-h : Print help instructions.\n");
