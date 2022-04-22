@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "optimizers.h"
+
 int main(int argc, char *argv[])
 {
 	int opt;
@@ -11,10 +13,16 @@ int main(int argc, char *argv[])
 
 	int size = 0;
 
-	while ((opt = getopt(argc, argv, "ht:i")) != -1)
+	double learn_rate = 0.1;
+
+	while ((opt = getopt(argc, argv, "ht:ir:")) != -1)
 	{
 		switch (opt)
 		{
+		case 'r':
+			learn_rate = atof(optarg);
+			break;
+
 		case 't':
 			FILE *fptr;
 			if ((fptr = fopen(optarg, "r")) == NULL)
@@ -23,6 +31,7 @@ int main(int argc, char *argv[])
 				printf("Read from file not implemented yet. File: %s\n", optarg);
 			}
 			break;
+
 		case 'i':
 			// inputsize is size of manual input
 			// size should be total size of data set
@@ -49,12 +58,14 @@ int main(int argc, char *argv[])
 			}
 			size += inputsize;
 			break;
-		case 'h':
-		default:
-			printf("-h : Print help instructions.\n");
-			printf("-t : Read data from a text file.\n");
-			printf("-i : Read data from a manual input.\n");
-			exit(EXIT_SUCCESS);
+
+			case 'h':
+			default:
+				printf("-h : Print help instructions.\n");
+				printf("-t <filename> : Read data from a text file.\n");
+				printf("-i : Read data from a manual input.\n");
+				printf("-r <learning rate> : Specify learning rate (default: 0.1)\n");
+				exit(EXIT_SUCCESS);
 		}
 	}
 
