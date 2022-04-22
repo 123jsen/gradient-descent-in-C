@@ -46,10 +46,31 @@ int main(int argc, char *argv[])
 
 		case 't':
 			FILE *fptr;
-			if ((fptr = fopen(optarg, "r")) == NULL)
+			if ((fptr = fopen(optarg, "r")) != NULL)
 			{
-				// TODO: file input
-				printf("Read from file not implemented yet. File: %s\n", optarg);
+				fscanf(fptr, "%d", &size);
+
+				if (verbose)
+					printf("Size of file (%s): %d\n", optarg, size);
+
+				x = malloc(size * sizeof(double));
+				y = malloc(size * sizeof(double));
+
+				for (int i = 0; i < size; i++)
+				{
+					fscanf(fptr, "%lf %lf", &x[i], &y[i]);
+
+					if (verbose)
+						printf("Read x: %lf y: %lf\n", x[i], y[i]);
+				}
+
+				printf("Closing file...\n\n");
+				fclose(fptr);
+			}
+			else
+			{
+				printf("Failed to read from file: %s\n", optarg);
+				exit(EXIT_FAILURE);
 			}
 			break;
 
@@ -94,6 +115,7 @@ int main(int argc, char *argv[])
 			printf("\n--INPUT--\n");
 			printf("-t <filename> : Read data from a text file.\n");
 			printf("-i : Read data from a manual input.\n");
+			printf("-v : Verbose mode.\n");
 
 			printf("\n--HYPERPARAMETERS--\n");
 			printf("-r <learning rate> : Specify learning rate (default: 0.001)\n");
@@ -102,7 +124,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (size == 0)
+	if (size <= 0)
 	{
 		printf("Failed to read data\n");
 		exit(EXIT_FAILURE);
