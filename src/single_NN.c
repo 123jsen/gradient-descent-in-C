@@ -30,8 +30,8 @@ int main(int argc, char *argv[])
 	int predict_mode = 0;
 
 	// Hyperparameters
-	double learn_rate = 0.1;
-	int num_epochs = 10000;
+	double learn_rate = 0.5;
+	int num_epochs = 20000;
 
 	// Declare variables
 	nn_model *model = malloc(sizeof(nn_model));
@@ -143,9 +143,9 @@ int main(int argc, char *argv[])
 			printf("-p : Allows testing by predictions after training is complete.\n");
 
 			printf("\n--HYPERPARAMETERS--\n");
-			printf("-r <learning rate> : Specify learning rate (default: 0.001)\n");
-			printf("-e <number of epochs> : Specify number of epochs (default: 10000)\n");
-			printf("-d <network depth> : Specify number of layers, including input and output. (default: 5)\n");
+			printf("-r <learning rate> : Specify learning rate (current: %lf)\n", learn_rate);
+			printf("-e <number of epochs> : Specify number of epochs (current: %d)\n", num_epochs);
+			printf("-d <network depth> : Specify number of layers, including input and output. (current: %d)\n", model->depth);
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -187,6 +187,13 @@ int main(int argc, char *argv[])
 	printf("Training Complete\n");
 	printf("MSE: %lf\n", error);
 
+	printf("Final model configuration:\n");
+	printf("Layer 0: input layer\n");
+	for (int i = 1; i < model->depth; i++)
+	{
+		printf("Layer %d: weight: %lf, bias: %lf\n", i, model->weights[i], model->biases[i]);
+	}
+
 	if (predict_mode)
 	{
 		printf("\nPrediction mode:\n");
@@ -203,7 +210,8 @@ int main(int argc, char *argv[])
 
 			double * a_values = malloc (model->depth * sizeof(double));
 			forward_propagation(a_values, model, x);
-			printf("Model output: %lf\n", a_values[model->depth]);
+			printf("Model output: %lf\n", a_values[model->depth - 1]);
+			free(a_values);
 		}
 
 	}
