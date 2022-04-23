@@ -43,4 +43,6 @@ void back_propagation(double *a_values, nn_model *model, double x, char y, doubl
 		double derivative = delta[i] * a_values[i] * (1 - a_values[i]);
 		model->biases[i] -= learn_rate * derivative;
 	}
+
+	free(delta);
 }
