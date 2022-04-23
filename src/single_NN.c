@@ -5,23 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-struct nn_model
-{
-	int depth;
-	double *weights;
-	double *biases;
-};
-
-typedef struct nn_model nn_model;
-
-struct input_data
-{
-	int size;
-	double *x;
-	char *class;
-};
-
-typedef struct input_data input_data;
+#include "single_NN.h"
 
 // Sets default values of weights and biases
 void initialize_model(nn_model * model)
@@ -52,7 +36,7 @@ int main(int argc, char *argv[])
 	input_data *data = malloc(sizeof(input_data));
 	data->size = 0;
 	data->x = NULL;
-	data->class = NULL;
+	data->cat = NULL;
 
 
 	while ((opt = getopt(argc, argv, "ht:ir:e:d:v")) != -1)
@@ -81,14 +65,14 @@ int main(int argc, char *argv[])
 					printf("Size of file (%s): %d\n", optarg, data->size);
 
 				data->x = malloc(data->size * sizeof(double));
-				data->class = malloc(data->size * sizeof(char));
+				data->cat = malloc(data->size * sizeof(char));
 
 				for (int i = 0; i < data->size; i++)
 				{
-					fscanf(fptr, "%lf %d", &data->x[i], &data->class[i]);
+					fscanf(fptr, "%lf %d", &data->x[i], &data->cat[i]);
 
 					if (verbose)
-						printf("Read x: %lf class: %d\n", data->x[i], data->class[i]);
+						printf("Read x: %lf class: %d\n", data->x[i], data->cat[i]);
 				}
 
 				printf("Closing file...\n\n");
@@ -116,14 +100,14 @@ int main(int argc, char *argv[])
 			else
 				data->x = realloc(data->x, (data->size + inputsize) * sizeof(double));
 
-			if (data->class == NULL)
-				data->class = malloc(inputsize * sizeof(char));
+			if (data->cat == NULL)
+				data->cat = malloc(inputsize * sizeof(char));
 			else
-				data->class = realloc(data->class, (data->size + inputsize) * sizeof(char));
+				data->cat = realloc(data->cat, (data->size + inputsize) * sizeof(char));
 
 			for (int i = data->size; i < data->size + inputsize; i++)
 			{
-				scanf("%lf %d", &data->x[i], &data->class[i]);
+				scanf("%lf %d", &data->x[i], &data->cat[i]);
 			}
 			data->size += inputsize;
 			break;
@@ -159,6 +143,20 @@ int main(int argc, char *argv[])
 	}
 
 	initialize_model(&model);
+
+	// We will adopt online learning (i.e. one data at a time)
+
+	// Move activation value array declaration outside of for loop
+	// No need to free each time
+	double * a_values = malloc (model->depth * sizeof(double));
+
+	for (int i = 0; i < num_epochs; i++)
+	{
+		for (int j = 0; j < data->size; j++)
+		{
+			forward_propagation(a_values, model, data->x[j]);
+		}	
+	}
 
 	return 0;
 }
