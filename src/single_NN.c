@@ -1,9 +1,37 @@
 // Multiple layers, single depth classifier
-// Takes in 1D input (x, c) where c stands for class 
+// Takes in 1D input (x, c) where c stands for class
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+
+struct nn_model
+{
+	int depth;
+	double *weights;
+	double *biases;
+};
+
+typedef struct nn_model nn_model;
+
+struct input_data
+{
+	int size;
+	double *x;
+	char *class;
+};
+
+typedef struct input_data input_data;
+
+// Sets default values of weights and biases
+void initialize_model(nn_model * model)
+{
+	for (int i = 0; i < model->depth; i++)
+	{
+		model->biases[i] = 1;
+		model->weights[i] = 1;
+	}
+}
 
 int main(int argc, char *argv[])
 {
@@ -11,17 +39,21 @@ int main(int argc, char *argv[])
 	int opt;
 	int verbose = 0;
 
-	// Arrays for data
-	double *x = NULL;
-	char *class = NULL;
-
-	// Input Size
-	int size = 0;
-
 	// Hyperparameters
 	double learn_rate = 0.001;
 	int num_epochs = 10000;
-	int depth = 5;
+
+	// Declare variables
+	nn_model *model = malloc(sizeof(nn_model));
+	model->weights = NULL;
+	model->biases = NULL;
+	model->depth = 5;
+
+	input_data *data = malloc(sizeof(input_data));
+	data->size = 0;
+	data->x = NULL;
+	data->class = NULL;
+
 
 	while ((opt = getopt(argc, argv, "ht:ir:e:d:v")) != -1)
 	{
@@ -36,27 +68,27 @@ int main(int argc, char *argv[])
 			break;
 
 		case 'd':
-			depth = atoi(optarg);
+			model->depth = atoi(optarg);
 			break;
 
 		case 't':
 			FILE *fptr;
 			if ((fptr = fopen(optarg, "r")) != NULL)
 			{
-				fscanf(fptr, "%d", &size);
+				fscanf(fptr, "%d", &data->size);
 
 				if (verbose)
-					printf("Size of file (%s): %d\n", optarg, size);
+					printf("Size of file (%s): %d\n", optarg, data->size);
 
-				x = malloc(size * sizeof(double));
-				class = malloc(size * sizeof(char));
+				data->x = malloc(data->size * sizeof(double));
+				data->class = malloc(data->size * sizeof(char));
 
-				for (int i = 0; i < size; i++)
+				for (int i = 0; i < data->size; i++)
 				{
-					fscanf(fptr, "%lf %d", &x[i], &class[i]);
+					fscanf(fptr, "%lf %d", &data->x[i], &data->class[i]);
 
 					if (verbose)
-						printf("Read x: %lf class: %d\n", x[i], class[i]);
+						printf("Read x: %lf class: %d\n", data->x[i], data->class[i]);
 				}
 
 				printf("Closing file...\n\n");
@@ -79,21 +111,21 @@ int main(int argc, char *argv[])
 			scanf("%d", &inputsize);
 			printf("Input %d data pairs (x, c): \n", inputsize);
 
-			if (x == NULL)
-				x = malloc(inputsize * sizeof(double));
+			if (data->x == NULL)
+				data->x = malloc(inputsize * sizeof(double));
 			else
-				x = realloc(x, (size + inputsize) * sizeof(double));
+				data->x = realloc(data->x, (data->size + inputsize) * sizeof(double));
 
-			if (class == NULL)
-				class = malloc(inputsize * sizeof(char));
+			if (data->class == NULL)
+				data->class = malloc(inputsize * sizeof(char));
 			else
-				class = realloc(class, (size + inputsize) * sizeof(char));
+				data->class = realloc(data->class, (data->size + inputsize) * sizeof(char));
 
-			for (int i = size; i < size + inputsize; i++)
+			for (int i = data->size; i < data->size + inputsize; i++)
 			{
-				scanf("%lf %d", &x[i], &class[i]);
+				scanf("%lf %d", &data->x[i], &data->class[i]);
 			}
-			size += inputsize;
+			data->size += inputsize;
 			break;
 
 		case 'v':
@@ -120,11 +152,13 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (size <= 0)
+	if (data->size <= 0)
 	{
 		printf("Failed to read data\n");
 		exit(EXIT_FAILURE);
 	}
+
+	initialize_model(&model);
 
 	return 0;
 }
