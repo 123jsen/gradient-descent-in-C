@@ -15,3 +15,16 @@ To compile, run the following commands inside `/src`.
 gcc linear_regression.c optimizers.c -c
 gcc linear_regression.o optimizers.o -o main
 ```
+
+You can know the parameters of `main` by calling `main -h`.
+
+## Single Height Classification Network
+
+To compile, run the following commands inside `/src`.
+
+```
+gcc single_NN.c non_linear_func.c optimizers.c -c
+gcc single_NN.o non_linear_func.o optimizers.o -o main
+```
+
+You can know the parameters of `main` by calling `main -h`.
