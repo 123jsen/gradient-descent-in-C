@@ -5,3 +5,5 @@ typedef struct nn_model nn_model;
 double sigmoid(double x);
 
 void forward_propagation(double * a_values, nn_model * model, double x);
+
+void back_propagation(double *a_values, nn_model *model, double x, char y, double learn_rate);

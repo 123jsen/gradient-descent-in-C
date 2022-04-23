@@ -6,6 +6,7 @@
 #include <unistd.h>
 
 #include "single_NN.h"
+#include "optimizers.h"
 #include "non_linear_func.h"
 
 // Sets default values of weights and biases
@@ -26,9 +27,10 @@ int main(int argc, char *argv[])
 	// Flags for program
 	int opt;
 	int verbose = 0;
+	int predict_mode = 0;
 
 	// Hyperparameters
-	double learn_rate = 0.001;
+	double learn_rate = 0.1;
 	int num_epochs = 10000;
 
 	// Declare variables
@@ -43,7 +45,7 @@ int main(int argc, char *argv[])
 	data->cat = NULL;
 
 
-	while ((opt = getopt(argc, argv, "ht:ir:e:d:v")) != -1)
+	while ((opt = getopt(argc, argv, "ht:ir:e:d:vp")) != -1)
 	{
 		switch (opt)
 		{
@@ -121,6 +123,10 @@ int main(int argc, char *argv[])
 			verbose = 1;
 			break;
 
+		case 'p':
+			predict_mode = 1;
+			break;
+
 		case 'h':
 		default:
 			printf("--HELP--\n");
@@ -131,12 +137,15 @@ int main(int argc, char *argv[])
 			printf("\n--INPUT--\n");
 			printf("-t <filename> : Read data from a text file.\n");
 			printf("-i : Read data from a manual input.\n");
+
+			printf("\n--TESTING--\n");
 			printf("-v : Verbose mode.\n");
+			printf("-p : Allows testing by predictions after training is complete.\n");
 
 			printf("\n--HYPERPARAMETERS--\n");
 			printf("-r <learning rate> : Specify learning rate (default: 0.001)\n");
 			printf("-e <number of epochs> : Specify number of epochs (default: 10000)\n");
-			printf("-d <network depth> : Specify number of neurons (default: 5)\n");
+			printf("-d <network depth> : Specify number of layers, including input and output. (default: 5)\n");
 			exit(EXIT_SUCCESS);
 		}
 	}
@@ -157,15 +166,46 @@ int main(int argc, char *argv[])
 	// No need to free each time
 	double * a_values = malloc (model->depth * sizeof(double));
 
+	double error;
 	for (int i = 0; i < num_epochs; i++)
 	{
-		if (verbose) printf("Epoch %d: \n", i);
+		if (verbose) printf("Epoch %d: ", i);
+
+		error = 0;
 		for (int j = 0; j < data->size; j++)
 		{
 			forward_propagation(a_values, model, data->x[j]);
+			error += squared_error(a_values[model->depth - 1], data->cat[j]);
 
-			//back_propagation(a_values, model, data);
+			back_propagation(a_values, model, data->x[j], data->cat[j], learn_rate);
 		}	
+		
+		error /= data->size;
+		if (verbose) printf("MSE: %lf\n", error);
+	}
+
+	printf("Training Complete\n");
+	printf("MSE: %lf\n", error);
+
+	if (predict_mode)
+	{
+		printf("\nPrediction mode:\n");
+
+		int test_size = 0;
+		printf("Testing data size:");
+		scanf("%d", &test_size);
+
+		for (int i = 0; i < test_size; i++)
+		{
+			double x;
+			printf("Enter the x input: ");
+			scanf("%lf", &x);
+
+			double * a_values = malloc (model->depth * sizeof(double));
+			forward_propagation(a_values, model, x);
+			printf("Model output: %lf\n", a_values[model->depth]);
+		}
+
 	}
 
 	return 0;
