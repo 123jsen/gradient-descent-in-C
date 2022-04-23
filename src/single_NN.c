@@ -6,10 +6,14 @@
 #include <unistd.h>
 
 #include "single_NN.h"
+#include "non_linear_func.h"
 
 // Sets default values of weights and biases
 void initialize_model(nn_model * model)
 {
+	model->weights = malloc(model->depth * sizeof(double));
+	model->biases = malloc(model->depth * sizeof(double));
+
 	for (int i = 0; i < model->depth; i++)
 	{
 		model->biases[i] = 1;
@@ -107,6 +111,7 @@ int main(int argc, char *argv[])
 
 			for (int i = data->size; i < data->size + inputsize; i++)
 			{
+				if (verbose) printf("(%d)-th pair: ", i - data->size);
 				scanf("%lf %d", &data->x[i], &data->cat[i]);
 			}
 			data->size += inputsize;
@@ -141,8 +146,10 @@ int main(int argc, char *argv[])
 		printf("Failed to read data\n");
 		exit(EXIT_FAILURE);
 	}
+	
+	initialize_model(model);
 
-	initialize_model(&model);
+	if (verbose) printf("Model successfully initialized\n");
 
 	// We will adopt online learning (i.e. one data at a time)
 
@@ -152,9 +159,12 @@ int main(int argc, char *argv[])
 
 	for (int i = 0; i < num_epochs; i++)
 	{
+		if (verbose) printf("Epoch %d: \n", i);
 		for (int j = 0; j < data->size; j++)
 		{
 			forward_propagation(a_values, model, data->x[j]);
+
+			//back_propagation(a_values, model, data);
 		}	
 	}
 

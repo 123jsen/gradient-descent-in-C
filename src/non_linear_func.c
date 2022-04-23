@@ -17,4 +17,9 @@ void forward_propagation(double * a_values, nn_model * model, double x)
 	}
 }
 
+void back_propagation(double * a_valies, nn_model * model, input_data * data)
+{
+	
+}
+
 
